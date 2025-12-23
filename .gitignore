@@ -1,2 +1,4 @@
 *.exe
 *.plb
+*stderr
+*stdout
