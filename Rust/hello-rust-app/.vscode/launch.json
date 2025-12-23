@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "rust",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/hello-rust-app",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "env": {},
+            "sourceMaps": true,
+            "preLaunchTask": "cargo build"
+        }
+    ]
+}

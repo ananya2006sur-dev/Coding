@@ -1,0 +1,6 @@
+Outcomes of 'Programming Skills in Python' course: 
+1. Implement programs to solve real-life problems
+2. Implement Python programs using appropriate control structures
+3. Execute Python programs
+4. Test Python programs for various inputs
+ It is fun to learn Python!

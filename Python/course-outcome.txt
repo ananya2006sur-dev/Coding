@@ -1,0 +1,6 @@
+1.Implement program to solve real life problems
+2.Implement python program using appropriate control structure,data types,operation and functions
+3.Execute python programs
+4.Test Python Programs for various inputs.
+
+Python is fun to learn

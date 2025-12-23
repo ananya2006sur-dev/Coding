@@ -1,0 +1,2 @@
+Average of the integers in input.txt file : 11.750000
+Maximum of the integers in input.txt file: 15
