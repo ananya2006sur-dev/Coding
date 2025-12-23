@@ -1,7 +1,5 @@
-i = 0
-for i < 5:
-    print(i)
-    i = i + 1
-    print(i)
-print("Done!") 
+print("Before")
+l = [9, 41, 12, 3, 74, 15]
+m = max(l)
+print("Largest number:", m)
     
