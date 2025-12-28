@@ -1,7 +1,14 @@
-lst1 = ['A', 'n', 'a', 'n', 'y', 'a']
-lst2 = ['A', 'n', 'a', 'n', 'y', 'a']
+fname = input("Enter the file name: ")
+fhand = open(fname) 
 
-if lst1 is lst2:
-    print("lst1 is lst2")
-else:
-    print("lst1 is not lst2")
+many = {}
+
+for line in fhand:
+    line = line.rstrip()
+    wds = line.split()
+    
+    for w in wds:
+        w = w.strip(".,!?:")
+        many[w] = many.get(w, 0) + 1
+    
+print(many)
