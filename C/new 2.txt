@@ -1,0 +1,157 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct poly
+{
+	int coeff; 
+	int pow; 
+	struct poly* next; 
+}; 
+typedef struct poly poly; 
+
+poly* create_poly()
+{
+	poly* head; 
+	poly* curr = malloc(sizeof(poly)); 
+	printf("Enter the coefficient and power of the first term: "); 
+	scanf("%d %d", &curr->coeff, &curr->pow); 
+	curr->next = NULL; 
+	head = curr; 
+	char choice; 
+	
+	do
+	{
+		printf("Do you want to add a new term (y/n)?: "); 
+		scanf(" %c", &choice); 
+		if(choice == 'y' || choice == 'Y')
+		{
+			poly* new = malloc(sizeof(poly)); 
+			printf("Enter the coefficient and power of the new term: "); 
+			scanf("%d %d", &new->coeff, &new->pow); 
+			new->next = NULL; 
+			curr->next = new; 
+			curr = curr->next; 
+		} 
+	} while(choice == 'y' || choice == 'Y'); 
+	
+	return head; 
+} 
+
+void delete_zero_terms(poly** head)
+{
+	if(*head == NULL)
+	{
+		printf("Polynomial not yet created\n"); 
+		return; 
+	} 
+	poly* curr = *head; 
+	poly* del; 
+	while(curr->next != NULL)
+	{
+		if(curr->next->coeff == 0)
+		{
+			del = curr->next; 
+			curr->next = del->next; 
+			free(del); 
+			del = NULL;
+		}
+		else
+		{
+			curr = curr->next; 
+		} 
+	}
+	if((*head)->coeff == 0)
+	{
+		del = *head; 
+		*head = (*head)->next; 
+		free(del); 
+		del = NULL;
+	}
+} 
+
+void display(poly* head)
+{
+	if(head == NULL)
+	{
+		printf("Polynomial not yet created\n"); 
+		return; 
+	}
+	poly* curr = head; 
+	while (curr != NULL)
+	{
+		if(curr->next == NULL)
+		{
+			printf("%dx^%d", curr->coeff, curr->pow); 
+		}
+		else
+		{
+			printf("%dx^%d + ", curr->coeff, curr->pow); 
+		}
+		curr = curr->next; 
+	} 
+	printf("\n"); 
+} 
+
+poly* add(poly* head1, poly* head2)
+{
+	if(head1 == NULL || head2 == NULL)
+	{
+		printf("One of the polynomials aren't yet created\n");
+		return NULL; 
+	}
+	poly* p1 = head1; 
+	poly* p2 = head2; 
+	poly* head; 
+	poly* curr = malloc(sizeof(poly)); 
+	if(head1->pow == head2->pow)
+	{
+		curr->coeff = head1->coeff + head2->coeff; 
+		curr->pow = head1->pow; 
+		p1 = p1->next; 
+		p2 = p2->next; 
+	}
+	else if(head1->pow > head2->pow)
+	{
+		curr->coeff = head1->coeff; 
+		curr->pow = head1->pow; 
+		p1 = p1->next; 
+	}
+	else
+	{
+		curr->coeff = head2->coeff;
+		curr->pow = head2->pow; 
+		p2 = p2->next; 
+	} 
+	curr->next = NULL; 
+	head = curr; 
+	while(p1 != NULL && p2 != NULL)
+	{
+		poly* new = malloc(sizeof(poly)); 
+		if(p1->pow == p2->pow)
+		{
+			new->coeff = p1->coeff + p2->coeff; 
+			new->pow = p1->pow; 
+			p1 = p1->next; 
+			p2 = p2->next; 
+		}
+		else if(p1->pow > p2->pow)
+		{
+			new->coeff = p1->coeff; 
+			new->pow = p1->pow; 
+			p1 = p1->next; 
+		}
+		else
+		{
+			new->coeff = p2->coeff;
+			new->pow = p2->pow; 
+			p2 = p2->next; 
+		} 
+		new->next = NULL; 
+		curr->next = new; 
+		curr = new; 
+	}
+	
+	return head; 
+} 
+		
+	
