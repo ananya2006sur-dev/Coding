@@ -1,14 +1,10 @@
-fname = input("Enter the file name: ")
-fhand = open(fname) 
-
-many = {}
-
+fhand = open('sun.txt')
+counts = {}
 for line in fhand:
-    line = line.rstrip()
-    wds = line.split()
-    
-    for w in wds:
-        w = w.strip(".,!?:")
-        many[w] = many.get(w, 0) + 1
-    
-print(many)
+    words = line.split() 
+    for word in words:
+        word = word.strip('.,?!:;')
+        counts[word] = counts.get(word, 0) + 1 
+
+counts_rev = sorted([(count, wd) for wd, count in counts.items()], reverse = True) 
+print(counts_rev)
