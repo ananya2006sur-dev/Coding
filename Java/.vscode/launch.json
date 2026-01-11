@@ -1,0 +1,56 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "newadd",
+            "request": "launch",
+            "mainClass": "newadd",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "add",
+            "request": "launch",
+            "mainClass": "add",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "InputExample",
+            "request": "launch",
+            "mainClass": "InputExample",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Second",
+            "request": "launch",
+            "mainClass": "Second",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "First",
+            "request": "launch",
+            "mainClass": "First",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Debug HelloWorld",
+            "request": "launch",
+            "mainClass": "HelloWorld",
+            "projectName": "",
+            "console": "integratedTerminal"
+        }
+    ]
+}
+
