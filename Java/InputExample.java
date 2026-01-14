@@ -13,5 +13,6 @@ public class InputExample
         int age = sc.nextInt(); 
 
         System.out.printf("Name: " + name + ", age: " + age); 
+        sc.close(); 
     }
 }
