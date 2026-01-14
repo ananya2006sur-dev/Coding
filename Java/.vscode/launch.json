@@ -3,6 +3,69 @@
     "configurations": [
         {
             "type": "java",
+            "name": "SumAndAverage",
+            "request": "launch",
+            "mainClass": "SumAndAverage",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "numbers",
+            "request": "launch",
+            "mainClass": "numbers",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "multiple",
+            "request": "launch",
+            "mainClass": "multiple",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "grade",
+            "request": "launch",
+            "mainClass": "grade",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "vote",
+            "request": "launch",
+            "mainClass": "vote",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "addition",
+            "request": "launch",
+            "mainClass": "addition",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Cat",
+            "request": "launch",
+            "mainClass": "Cat",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Dog",
+            "request": "launch",
+            "mainClass": "Dog",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Test_Animals",
+            "request": "launch",
+            "mainClass": "Test_Animals",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
             "name": "newadd",
             "request": "launch",
             "mainClass": "newadd",
