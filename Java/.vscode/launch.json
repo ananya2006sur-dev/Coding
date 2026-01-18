@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "LinkedList",
+            "request": "launch",
+            "mainClass": "LinkedList",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
             "name": "SumAndAverage",
             "request": "launch",
             "mainClass": "SumAndAverage",
