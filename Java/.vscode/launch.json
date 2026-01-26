@@ -3,6 +3,34 @@
     "configurations": [
         {
             "type": "java",
+            "name": "dynamic",
+            "request": "launch",
+            "mainClass": "dynamic",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Bool",
+            "request": "launch",
+            "mainClass": "Bool",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Char",
+            "request": "launch",
+            "mainClass": "Char",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Student",
+            "request": "launch",
+            "mainClass": "Student",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
             "name": "LinkedList",
             "request": "launch",
             "mainClass": "LinkedList",
