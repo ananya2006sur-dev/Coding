@@ -1,0 +1,161 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "div",
+            "request": "launch",
+            "mainClass": "div",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "dynamic",
+            "request": "launch",
+            "mainClass": "dynamic",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Bool",
+            "request": "launch",
+            "mainClass": "Bool",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Char",
+            "request": "launch",
+            "mainClass": "Char",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Student",
+            "request": "launch",
+            "mainClass": "Student",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "LinkedList",
+            "request": "launch",
+            "mainClass": "LinkedList",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "SumAndAverage",
+            "request": "launch",
+            "mainClass": "SumAndAverage",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "numbers",
+            "request": "launch",
+            "mainClass": "numbers",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "multiple",
+            "request": "launch",
+            "mainClass": "multiple",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "grade",
+            "request": "launch",
+            "mainClass": "grade",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "vote",
+            "request": "launch",
+            "mainClass": "vote",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "addition",
+            "request": "launch",
+            "mainClass": "addition",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Cat",
+            "request": "launch",
+            "mainClass": "Cat",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Dog",
+            "request": "launch",
+            "mainClass": "Dog",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Test_Animals",
+            "request": "launch",
+            "mainClass": "Test_Animals",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "newadd",
+            "request": "launch",
+            "mainClass": "newadd",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "add",
+            "request": "launch",
+            "mainClass": "add",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "InputExample",
+            "request": "launch",
+            "mainClass": "InputExample",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Second",
+            "request": "launch",
+            "mainClass": "Second",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "First",
+            "request": "launch",
+            "mainClass": "First",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
+            "name": "Debug HelloWorld",
+            "request": "launch",
+            "mainClass": "HelloWorld",
+            "projectName": "",
+            "console": "integratedTerminal"
+        }
+    ]
+}
+
