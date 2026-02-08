@@ -1,2 +1,2 @@
-squares = {key:key**2 for key in range(1, 11)}
-print(squares)
+evod = {num : "even" if  num % 2 == 0 else "odd" for num in range(1, 21)} 
+print(evod) 
