@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "div",
+            "request": "launch",
+            "mainClass": "div",
+            "projectName": "Java_9e730713"
+        },
+        {
+            "type": "java",
             "name": "dynamic",
             "request": "launch",
             "mainClass": "dynamic",
