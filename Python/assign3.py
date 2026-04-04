@@ -12,6 +12,12 @@ film_database.update({"3 Idiots": film3})
 film_database.update({"Jab Tak Hai Jaan": film4})
 film_database.update({"Aashiqui 2": film5})
 
+list_choice = input("Do you want to list all available films? (yes/no): ").strip().lower()
+if list_choice == "yes":
+    print("Available films in the database:")
+    for film_name in film_database:
+        print(film_name)
+
 choice1 = int(input("Enter the no. of films whose details you want: "))
 
 if choice1 == 0:

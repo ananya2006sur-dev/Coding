@@ -10,7 +10,6 @@ public class twoD
 		System.out.print("Enter the no. of columns: "); 
 		int n = sc.nextInt();
 		int[][] arr = new int[m][n];
-		int k = 1;
 		for(int i = 0; i < m; i++)
 		{
 			for(int j = 0; j < n; j++)
@@ -19,6 +18,7 @@ public class twoD
 				arr[i][j] = sc.nextInt();
 			}
 		}
+		System.out.println("Matrix: ");
 		for(int i = 0; i < m; i++)
 		{
 			for(int j = 0; j < n; j++)
@@ -27,40 +27,48 @@ public class twoD
 			}
 			System.out.printf("\n");
 		}
-		int bottom = m; 
+		int bottom = m - 1; 
 		int top = 0; 
-		int right = n;
+		int right = n - 1;
 		int left = 0; 
 		int i, j;
-		while(top < bottom && left < right)
+		System.out.println("Spiral order: ");
+		while(top <= bottom && left <= right)
 		{
 			i = top; 
 			j = left - 1; 
-			while(j < right - 1)
+			while(j < right)
 			{
-				j++; 
-				System.out.print(arr[i][j] + " ");
-			} 
-			top++; 
-			while(i < bottom - 1)
-			{
-				i++; 
+				j++;
 				System.out.print(arr[i][j] + " ");
 			}
-			right--;
-			while(j > left)
+			top++;
+			while(i < bottom)
 			{
-				j--; 
+				i++;
 				System.out.print(arr[i][j] + " ");
 			}
-			bottom--; 
-			while(i > top)
+			right--; 
+			if(top <= bottom)
 			{
-				i--; 
-				System.out.print(arr[i][j] + " ");
+				while(j > left)
+				{
+					j--; 
+					System.out.print(arr[i][j] + " ");
+				}
+				bottom--;
 			}
-			left++;
+			if(left <= right)
+			{
+				while(i > top)
+				{
+					i--;
+					System.out.print(arr[i][j] + " ");
+				}
+				left++;
+			}
+
 		}
-		
+		sc.close(); 
 	}
 } 
