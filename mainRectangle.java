@@ -1,90 +1,93 @@
-import java.util.*;
+import java.util.Scanner;
 
-class Rectangle {
+class Rectangle
+{
     private float length;
     private float width;
-    private float area;
     private String color;
 
-    // Setters
-    public void setLength(float length) {
+    void setLength(float length)
+    {
         this.length = length;
-        calculateArea();
     }
 
-    public void setWidth(float width) {
+    void setWidth(float width)
+    {
         this.width = width;
-        calculateArea();
     }
 
-    public void setColor(String color) {
+    void setColor(String color)
+    {
         this.color = color;
     }
 
-    // Getters
-    public float getArea() {
-        return area;
+    float getLength()
+    {
+        return length; 
     }
 
-    public String getColor() {
+    float getWidth()
+    {
+        return width;
+    }
+
+    float getArea()
+    {
+        return length * width;
+    }
+
+    String getColor()
+    {
         return color;
-    }
-
-    // Calculate area
-    private void calculateArea() {
-        area = length * width;
     }
 }
 
-public class mainRectangle {
-    public static void main(String[] args) {
+public class mainRectangle
+{
+    public static void main(String[] args)
+    {
+        //Comparing area and color of two rectangles
         Scanner sc = new Scanner(System.in);
-
+        System.out.println("Enter the length of the first rectangle: ");
+        float length1 = sc.nextFloat();
+        System.out.println("Enter the width of the first rectangle: ");
+        float width1 = sc.nextFloat();
+        System.out.println("Enter the color of the first rectangle: ");
+        String color1 = sc.next();
         Rectangle r1 = new Rectangle();
+        r1.setLength(length1);
+        r1.setWidth(width1);
+        r1.setColor(color1);
+        System.out.println("Enter the length of the second rectangle: ");
+        float length2 = sc.nextFloat();
+        System.out.println("Enter the width of the second rectangle: ");
+        float width2 = sc.nextFloat();
+        System.out.println("Enter the color of the second rectangle: ");
+        String color2 = sc.next();
         Rectangle r2 = new Rectangle();
-
-        // Input for Rectangle 1
-        System.out.println("Enter details for Rectangle 1:");
-        System.out.print("Length: ");
-        r1.setLength(sc.nextFloat());
-
-        System.out.print("Width: ");
-        r1.setWidth(sc.nextFloat());
-
-        sc.nextLine(); // clear buffer
-        System.out.print("Color: ");
-        r1.setColor(sc.nextLine());
-
-        // Input for Rectangle 2
-        System.out.println("\nEnter details for Rectangle 2:");
-        System.out.print("Length: ");
-        r2.setLength(sc.nextFloat());
-
-        System.out.print("Width: ");
-        r2.setWidth(sc.nextFloat());
-
-        sc.nextLine(); // clear buffer
-        System.out.print("Color: ");
-        r2.setColor(sc.nextLine());
-
-        // Display areas
-        System.out.println("\nRectangle 1 Area: " + r1.getArea());
-        System.out.println("Rectangle 2 Area: " + r2.getArea());
-
-        // Compare areas
-        if (r1.getArea() == r2.getArea()) {
-            System.out.println("Areas are equal");
-        } else {
-            System.out.println("Areas are not equal");
+        r2.setLength(length2);
+        r2.setWidth(width2);
+        r2.setColor(color2);
+        if(r1.getArea() > r2.getArea())
+        {
+            System.out.println("The first rectangle has the greater area");
         }
-
-        // Compare colors
-        if (r1.getColor().equalsIgnoreCase(r2.getColor())) {
-            System.out.println("Colors are same");
-        } else {
-            System.out.println("Colors are different");
+        else if(r1.getArea() < r2.getArea())
+        {
+            System.out.println("The second rectangle has the greater area");
         }
-
+        else
+        {
+            System.out.println("The two rectangles have the same area");
+        }
+        if(r1.getColor().equals(r2.getColor()))
+        {
+            System.out.println("The two rectangles have the same color");
+        }
+        else
+        {
+            System.out.println("The two rectangles have different colors");
+        }
         sc.close();
     }
 }

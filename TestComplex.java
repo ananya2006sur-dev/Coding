@@ -1,9 +1,14 @@
 import java.util.Scanner;
-
 class Complex
 {
     double real; 
-    double imaginary; 
+    double imaginary;
+
+    Complex()
+    {
+        this(0, 0);
+        System.out.println("Inside the default Complex constructor");
+    }
 
     Complex(double real, double imaginary)
     {
@@ -11,29 +16,31 @@ class Complex
         this.imaginary = imaginary; 
     }
 
-    Complex add(Complex other)
-    {
-        return new Complex(this.real + other.real, this.imaginary + other.imaginary);
-    }
-
-    Complex subtract(Complex other)
-    {
-        return new Complex(this.real - other.real, this.imaginary - other.imaginary);
-    }
-
-    Complex multiply(Complex other)
-    {
-        return new Complex(this.real * other.real - this.imaginary * other.imaginary, this.real * other.imaginary + this.imaginary * other.real);
-    }
-
-    Complex divide(Complex other)
-    {
-        return new Complex((this.real * other.real + this.imaginary * other.imaginary) / (other.real * other.real + other.imaginary * other.imaginary), (this.imaginary * other.real - this.real * other.imaginary) / (other.real * other.real + other.imaginary * other.imaginary));
-    }
-
     void display()
     {
-        System.out.println(this.real + " + " + this.imaginary + "i");
+        System.out.println("The complex number is: " + this.real + " + " + this.imaginary + "i");
+    }
+
+    Complex add(Complex other)
+    {
+        return new Complex(this.real + other.real, this.imaginary + other.imaginary); 
+    }
+
+    Complex sub(Complex other)
+    {
+        return new Complex(this.real - other.real, this.imaginary - other.imaginary); 
+    }
+
+    Complex mul(Complex other)
+    {
+        return new Complex(((this.real * other.real) - (this.imaginary * other.imaginary)), ((this.real * other.imaginary) + (this.imaginary * other.real)));
+    }
+
+    Complex div(Complex other)
+    {
+        Complex num = new Complex(((this.real * other.real) + (this.imaginary * other.imaginary)), ((this.imaginary * other.real) - (this.real * other.imaginary)));
+        double den = (other.real * other.real) + (other.imaginary * other.imaginary);
+        return new Complex(num.real / den, num.imaginary / den);
     }
 }
 
@@ -52,22 +59,18 @@ public class TestComplex
         double imaginary2 = sc.nextDouble();
         Complex c1 = new Complex(real1, imaginary1);
         Complex c2 = new Complex(real2, imaginary2);
-        System.out.println("First complex number: ");
-        c1.display();
-        System.out.println("Second complex number: ");
-        c2.display();
-        System.out.println("Addition of the two complex numbers: ");
-        Complex sum = c1.add(c2);
-        sum.display();
-        System.out.println("Subtraction of the two complex numbers: ");
-        Complex difference = c1.subtract(c2);
-        difference.display();
-        System.out.println("Multiplication of the two complex numbers: ");
-        Complex product = c1.multiply(c2);
-        product.display();
-        System.out.println("Division of the two complex numbers: ");
-        Complex quotient = c1.divide(c2);
-        quotient.display();
+        System.out.println("The sum of the two complex numbers is: ");
+        Complex c3 = c1.add(c2);
+        System.out.println("The difference of the two complex numbers is: ");
+        Complex c4 = c1.sub(c2);
+        System.out.println("The product of the two complex numbers is: ");
+        Complex c5 = c1.mul(c2);
+        System.out.println("The quotient of the two complex numbers is: ");
+        Complex c6 = c1.div(c2);
+        c3.display();
+        c4.display();
+        c5.display();
+        c6.display();
         sc.close();
     }
 }

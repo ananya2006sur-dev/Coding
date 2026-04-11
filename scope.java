@@ -1,6 +1,6 @@
-public class scope 
+class scp 
 {
-    public static void main(String args[])
+    static void main(String args[])
     {
         int a = 10;
         {

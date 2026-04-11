@@ -67,8 +67,8 @@ public class twoD
 				}
 				left++;
 			}
-
-		}
 		sc.close(); 
 	}
-} 
+	}
+}
+ 

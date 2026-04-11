@@ -1,39 +1,46 @@
 import java.util.*;
 
-class Animal {
+class Animal 
+{
     int legs;
     String name;
     String color;
 
-    Animal() {
+    Animal() 
+    {
         System.out.println("Inside default Animal constructor");
     }
 
-    Animal(int legs, String name, String color) {
+    Animal(int legs, String name, String color) 
+    {
         System.out.println("Inside parameterized Animal constructor");
         this.legs = legs;
         this.name = name;
         this.color = color;
     }
 
-    void display() {
+    void display() 
+    {
         System.out.println("Animal name: " + name);
         System.out.println("Animal color: " + color);
         System.out.println("Animal legs: " + legs);
     }
 
-    void sound() {
+    void sound() 
+    {
         System.out.println("Make Sound");
     }
 
-    void run() {
+    void run() 
+    {
         System.out.println("Run");
     }
 }
 
-class Dog extends Animal {
-
-    Dog(int legs, String name, String color) {
+class Dog extends Animal 
+{
+    Dog(int legs, String name, String color) 
+    {
         super(legs, name, color); // calling the constructor of the parent class using super keyword
         System.out.println("Inside Dog constructor");
     }
@@ -120,6 +127,5 @@ public class Main {
         c.run();
 
         sc.close();
-
     }
 }
