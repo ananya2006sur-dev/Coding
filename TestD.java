@@ -25,7 +25,7 @@ class Duck extends Animal implements Flyable, Swimmable
 
     public void swim()
     {
-        System.out.println("Duck is swimming");
+        System.out.println("Duck is swimming"); 
     }
 }
 
