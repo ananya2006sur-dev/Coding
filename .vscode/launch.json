@@ -2,6 +2,41 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "java",
+      "name": "SynchronizeDemo",
+      "request": "launch",
+      "mainClass": "SynchronizeDemo",
+      "projectName": "Coding_9d8c5a9e"
+    },
+    {
+      "type": "java",
+      "name": "ThreadCreationDemo",
+      "request": "launch",
+      "mainClass": "ThreadCreationDemo",
+      "projectName": "Coding_9d8c5a9e"
+    },
+    {
+      "type": "java",
+      "name": "MainThread1",
+      "request": "launch",
+      "mainClass": "MainThread1",
+      "projectName": "Coding_9d8c5a9e"
+    },
+    {
+      "type": "java",
+      "name": "ExceptionDemo",
+      "request": "launch",
+      "mainClass": "ExceptionDemo",
+      "projectName": "Coding_9d8c5a9e"
+    },
+    {
+      "type": "java",
+      "name": "MainStudent",
+      "request": "launch",
+      "mainClass": "MainStudent",
+      "projectName": "Coding_9d8c5a9e"
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
