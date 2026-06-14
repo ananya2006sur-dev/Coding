@@ -1,0 +1,33 @@
+server:
+  port: 9090
+
+log_level: INFO   # DEBUG | INFO | WARN | ERROR
+
+outputs:
+  active:
+    #- kafka
+    #- http
+     - file
+    #- fluentbit
+
+  kafka:
+    brokers:
+      - "broker1.example.com:9092"
+      - "broker2.example.com:9092"
+    topic: "prometheus-metrics"
+    protocol: ssl   # ssl | plain
+    ssl:
+      ca_pem:   "/etc/certs/ca.pem"
+      cert_pem: "/etc/certs/client.pem"
+      key_pem:  "/etc/certs/client.key.pem"
+
+  http:
+    endpoint: "http://downstream.example.com/ingest"
+
+  file:
+    path: "D:/Ananya/Coding/prometheus_producer/metrics.log"
+
+  fluentbit:
+    host: "127.0.0.1"
+    port: 24224
+    tag:  "prometheus.metrics"

@@ -1,0 +1,23 @@
+In folder D:/Ananya/Coding/prometheus_producer I want to create a golang application that will accept prometheus remotewrite.
+The port on which the requests are accepted muct be recorder in the application's config file.
+After accepting a prometheus remote write request, the application must have the capability to write to the following targets
+1. Kafka. To write to kafka, the kafka broker IPs and ports must be recorded and maintained in the golang application's config file. Along with the borker IPs and ports the golang application's configuration file must also maintain, kafka protocol (ssl/plain), kafka ssl/tls key pem file, kafka ssl/tls ca pem file, kafka ssl/tls certfile.
+2. http. To write to ann http endpoint using POST, the target http endpoint much be maintained in the golang application's config file.
+3. File. To write to a file the absolute path must be maintained in the golang application's config file.
+4. Fluentbit forward. To write to a fluentbit forward target must be maintained in the golang application's config file. The tag to use for fluentbit forward must also be recorded and maintained in the golang application's config file.
+
+One or more output methods (kafka/http/fluentbit forward/file) can be active. If more than one output methods are active the application must write to all the active methods.
+Which output methods are active must be recorded and maintained in the golang application's config file.
+If an output method is marker as active but the configurations to write by that method is not available in the configuration file then the application must write appropriate error to stderr and exit without starting.
+
+The must be 4 levels of loggins.
+INFO
+DEBUG
+WARN
+ERROR
+
+Only one loglevel can be active. Log level must be also maintained in the golang application's config file.
+For writing to kafka use async producer with NO acknowledge ment required (neither success nor error). Pure fire and forget. However if the topic to write is not available in the kafka brokers then appropriate WARN message must be logged. Even in the case on topic not found on broker should not stop the golang application.
+Generate a detailed .md file with the design in prometheus_producer folder.
+==============================================================================================
+
