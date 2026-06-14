@@ -21,3 +21,5 @@ For writing to kafka use async producer with NO acknowledge ment required (neith
 Generate a detailed .md file with the design in prometheus_producer folder.
 ==============================================================================================
 
+In folder D:\Ananya\Coding\Prometheus, I want to build a light weight prometheus application in golang that will do an prometheus remotewrite to a IP and port. This is for testing my prometheus_producer.
+==============================================================================================
