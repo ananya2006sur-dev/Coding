@@ -9,5 +9,6 @@ public class newadd
         int b = sc.nextInt();
         int c = a + b;
         System.out.println("Result: " + c);
+        sc.close(); 
     }
 }

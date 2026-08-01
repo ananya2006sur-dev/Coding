@@ -1,0 +1,160 @@
+=============================== hacker and challenges ===============================
+HACKERS WITH SAME CHALLENGES
+
+SELECT  DISTINCT A.HACKER_ID, B.HACKER_ID, A.CHALLENGES
+FROM
+(
+SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+FROM
+HACKERS H, CHALLENGES C
+WHERE
+H.HACKER_ID = C.HACKER_ID
+GROUP BY H.HACKER_ID, H.NAME
+) A
+,
+(
+SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+FROM
+HACKERS H, CHALLENGES C
+WHERE
+H.HACKER_ID = C.HACKER_ID
+GROUP BY H.HACKER_ID, H.NAME
+) B
+WHERE
+A.HACKER_ID != B.HACKER_ID AND
+A.CHALLENGES = B.CHALLENGES
+
+
+Max challenges
+
+SELECT  max(A.CHALLENGES)
+FROM
+(
+SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+FROM
+HACKERS H, CHALLENGES C
+WHERE
+H.HACKER_ID = C.HACKER_ID
+GROUP BY H.HACKER_ID, H.NAME
+) A
+
+
+Same no. of challenges less than max challenges
+
+select DISTINCT D.A_HACKER_ID, D.CHALLENGES
+FROM
+    (
+        SELECT  DISTINCT A.HACKER_ID A_HACKER_ID, B.HACKER_ID B_HACKER_ID, A.CHALLENGES
+        FROM
+        (
+            SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+            FROM
+                HACKERS H, CHALLENGES C
+            WHERE
+                H.HACKER_ID = C.HACKER_ID
+                GROUP BY H.HACKER_ID, H.NAME
+        ) A
+        ,
+        (
+            SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+            FROM
+                HACKERS H, CHALLENGES C
+            WHERE
+                H.HACKER_ID = C.HACKER_ID
+            GROUP BY H.HACKER_ID, H.NAME
+        ) B
+        WHERE
+            A.HACKER_ID != B.HACKER_ID AND
+            A.CHALLENGES = B.CHALLENGES
+    ) D,
+    (
+        SELECT  max(E.CHALLENGES) MAX_CHALLENGES
+        FROM
+        (
+            SELECT H.HACKER_ID, H.NAME, COUNT(C.CHALLENGE_ID) CHALLENGES
+            FROM
+                HACKERS H, CHALLENGES C
+            WHERE
+                H.HACKER_ID = C.HACKER_ID
+            GROUP BY H.HACKER_ID, H.NAME
+        ) E
+    ) F
+WHERE
+D.CHALLENGES < F.MAX_CHALLENGES
+
+
+
+My full query
+
+SELECT DISTINCT
+    ALLR.HACKER_ID,
+    ALLR.NAME,
+    ALLR.CHALLENGES
+FROM
+(
+    SELECT
+        H.HACKER_ID,
+        H.NAME,
+        COUNT(C.CHALLENGE_ID) AS CHALLENGES
+    FROM HACKERS H, CHALLENGES C
+    WHERE H.HACKER_ID = C.HACKER_ID
+    GROUP BY H.HACKER_ID, H.NAME
+) ALLR
+LEFT JOIN
+(
+    SELECT DISTINCT
+        D.A_HACKER_ID,
+        D.CHALLENGES
+    FROM
+    (
+        SELECT DISTINCT
+            A.HACKER_ID AS A_HACKER_ID,
+            B.HACKER_ID AS B_HACKER_ID,
+            A.CHALLENGES
+        FROM
+        (
+            SELECT
+                H.HACKER_ID,
+                H.NAME,
+                COUNT(C.CHALLENGE_ID) AS CHALLENGES
+            FROM HACKERS H, CHALLENGES C
+            WHERE H.HACKER_ID = C.HACKER_ID
+            GROUP BY H.HACKER_ID, H.NAME
+        ) A,
+        (
+            SELECT
+                H.HACKER_ID,
+                H.NAME,
+                COUNT(C.CHALLENGE_ID) AS CHALLENGES
+            FROM HACKERS H, CHALLENGES C
+            WHERE H.HACKER_ID = C.HACKER_ID
+            GROUP BY H.HACKER_ID, H.NAME
+        ) B
+        WHERE
+            A.HACKER_ID != B.HACKER_ID
+            AND A.CHALLENGES = B.CHALLENGES
+    ) D,
+    (
+        SELECT MAX(E.CHALLENGES) AS MAX_CHALLENGES
+        FROM
+        (
+            SELECT
+                H.HACKER_ID,
+                H.NAME,
+                COUNT(C.CHALLENGE_ID) AS CHALLENGES
+            FROM HACKERS H, CHALLENGES C
+            WHERE H.HACKER_ID = C.HACKER_ID
+            GROUP BY H.HACKER_ID, H.NAME
+        ) E
+    ) F
+
+    WHERE D.CHALLENGES < F.MAX_CHALLENGES
+) LESS
+ON ALLR.HACKER_ID = LESS.A_HACKER_ID
+WHERE LESS.A_HACKER_ID IS NULL
+ORDER BY
+    ALLR.CHALLENGES DESC,
+    ALLR.HACKER_ID ASC;
+=============================== hacker and challenges ===============================
+
+	
