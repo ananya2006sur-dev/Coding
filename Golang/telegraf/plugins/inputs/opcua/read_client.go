@@ -1,0 +1,268 @@
+package opcua
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/gopcua/opcua/ua"
+
+	"github.com/influxdata/telegraf"
+	"github.com/influxdata/telegraf/config"
+	"github.com/influxdata/telegraf/plugins/common/opcua"
+	"github.com/influxdata/telegraf/plugins/common/opcua/input"
+	"github.com/influxdata/telegraf/selfstat"
+)
+
+type readClientWorkarounds struct {
+	UseUnregisteredReads bool `toml:"use_unregistered_reads"`
+}
+
+type readClientConfig struct {
+	ReconnectErrorThreshold *uint64               `toml:"reconnect_error_threshold"`
+	ReadRetryTimeout        config.Duration       `toml:"read_retry_timeout"`
+	ReadRetries             uint64                `toml:"read_retry_count"`
+	ReadClientWorkarounds   readClientWorkarounds `toml:"request_workarounds"`
+	input.InputClientConfig
+}
+
+// readClient Requests the current values from the required nodes when gather is called.
+type readClient struct {
+	*input.OpcUAInputClient
+
+	ReconnectErrorThreshold uint64
+	ReadRetryTimeout        time.Duration
+	ReadRetries             uint64
+	ReadSuccess             selfstat.Stat
+	ReadError               selfstat.Stat
+	Workarounds             readClientWorkarounds
+
+	// Internal flags
+	reqIDs         []*ua.ReadValueID
+	ctx            context.Context
+	forceReconnect bool
+}
+
+func (rc *readClientConfig) createReadClient(log telegraf.Logger) (*readClient, error) {
+	inputClient, err := rc.InputClientConfig.CreateInputClient(log)
+	if err != nil {
+		return nil, err
+	}
+
+	// The polling reader has no subscriptions to preserve across reconnects, so
+	// gopcua's auto-reconnect only races with our own connect cycle and floods
+	// the server with sessions during outages. Let Telegraf own reconnection.
+	inputClient.DisableAutoReconnect = true
+
+	tags := map[string]string{
+		"endpoint": inputClient.Config.OpcUAClientConfig.Endpoint,
+	}
+
+	if rc.ReadRetryTimeout == 0 {
+		rc.ReadRetryTimeout = config.Duration(100 * time.Millisecond)
+	}
+
+	// Set default for ReconnectErrorThreshold if not configured
+	// Use the default value of reconnect after every error and
+	// allow the user to override that setting including forcing
+	// a reconnect after every cycle by setting zero.
+	reconnectThreshold := uint64(1)
+	if rc.ReconnectErrorThreshold != nil {
+		reconnectThreshold = *rc.ReconnectErrorThreshold
+	}
+
+	return &readClient{
+		OpcUAInputClient:        inputClient,
+		ReconnectErrorThreshold: reconnectThreshold,
+		ReadRetryTimeout:        time.Duration(rc.ReadRetryTimeout),
+		ReadRetries:             rc.ReadRetries,
+		ReadSuccess:             selfstat.Register("opcua", "read_success", tags),
+		ReadError:               selfstat.Register("opcua", "read_error", tags),
+		Workarounds:             rc.ReadClientWorkarounds,
+	}, nil
+}
+
+func (o *readClient) connect() error {
+	o.ctx = context.Background()
+	o.forceReconnect = false
+
+	if err := o.OpcUAClient.Connect(o.ctx); err != nil {
+		return fmt.Errorf("connect failed: %w", err)
+	}
+
+	// Fetch namespace array for namespace URI support
+	if err := o.OpcUAClient.UpdateNamespaceArray(o.ctx); err != nil {
+		o.Log.Warnf("Failed to fetch namespace array: %v", err)
+		// Continue anyway - this is only needed if using namespace URIs
+	}
+
+	// Browse-based discovery runs on every connect so server-side schema
+	// changes (added or removed nodes, renumbered namespaces) are picked up
+	// on reconnect. DiscoverNodes replaces the previously discovered groups
+	// and InitNodeMetricMapping rebuilds the mapping from scratch.
+	if len(o.Config.Browse.Paths) > 0 {
+		if err := o.OpcUAInputClient.DiscoverNodes(o.ctx); err != nil {
+			return fmt.Errorf("browse discovery failed: %w", err)
+		}
+		if err := o.OpcUAInputClient.InitNodeMetricMapping(); err != nil {
+			return fmt.Errorf("initializing node metric mapping failed: %w", err)
+		}
+	}
+
+	// Make sure we setup the node-ids correctly after reconnect
+	// as the server might be restarted and IDs changed
+	if err := o.OpcUAInputClient.InitNodeIDs(); err != nil {
+		return fmt.Errorf("initializing node IDs failed: %w", err)
+	}
+
+	o.reqIDs = make([]*ua.ReadValueID, 0, len(o.NodeIDs))
+	if o.Workarounds.UseUnregisteredReads {
+		for _, nid := range o.NodeIDs {
+			o.reqIDs = append(o.reqIDs, &ua.ReadValueID{NodeID: nid})
+		}
+	} else {
+		regResp, err := o.Client.RegisterNodes(o.ctx, &ua.RegisterNodesRequest{
+			NodesToRegister: o.NodeIDs,
+		})
+		if err != nil {
+			return fmt.Errorf("registering nodes failed: %w", err)
+		}
+
+		for _, v := range regResp.RegisteredNodeIDs {
+			o.reqIDs = append(o.reqIDs, &ua.ReadValueID{NodeID: v})
+		}
+	}
+
+	if err := o.read(); err != nil {
+		return fmt.Errorf("get data failed: %w", err)
+	}
+
+	return nil
+}
+
+func (o *readClient) ensureConnected() error {
+	// Force reconnection if we had a session error in the previous cycle
+	if o.forceReconnect || o.State() == opcua.Disconnected || o.State() == opcua.Closed {
+		// If we're forcing a reconnection, but we're not in Disconnected state,
+		// explicitly disconnect first
+		if o.State() != opcua.Disconnected && o.State() != opcua.Closed {
+			if err := o.Disconnect(context.Background()); err != nil {
+				o.Log.Debug("Error while disconnecting: ", err)
+			}
+		}
+		return o.connect()
+	}
+	return nil
+}
+
+func (o *readClient) currentValues() ([]telegraf.Metric, error) {
+	connectStart := time.Now()
+	if err := o.ensureConnected(); err != nil {
+		return nil, err
+	}
+	o.Log.Tracef("Connection check took %s", time.Since(connectStart))
+
+	if state := o.State(); state != opcua.Connected {
+		return nil, fmt.Errorf("not connected, in state %q", state)
+	}
+
+	readStart := time.Now()
+	if err := o.read(); err != nil {
+		o.Log.Tracef("Read failed after %s: %v", time.Since(readStart), err)
+		// We do not return the disconnect error, as this would mask the
+		// original problem, but we do log it
+		if derr := o.Disconnect(context.Background()); derr != nil {
+			o.Log.Debug("Error while disconnecting: ", derr)
+		}
+
+		return nil, err
+	}
+	o.Log.Tracef("OPC UA read of %d nodes took %s", len(o.NodeIDs), time.Since(readStart))
+
+	metricStart := time.Now()
+	metrics := make([]telegraf.Metric, 0, len(o.NodeMetricMapping))
+	var skipped int
+	// Parse the resulting data into metrics
+	for i := range o.NodeIDs {
+		if !o.StatusCodeOK(o.LastReceivedData[i].Quality) {
+			o.Log.Tracef("Skipping node %s: bad quality %v", o.NodeIDs[i], o.LastReceivedData[i].Quality)
+			skipped++
+			continue
+		}
+
+		metrics = append(metrics, o.MetricForNode(i))
+	}
+	o.Log.Tracef("Metric construction took %s (%d metrics, %d skipped due to bad quality)",
+		time.Since(metricStart), len(metrics), skipped)
+
+	return metrics, nil
+}
+
+func (o *readClient) read() error {
+	req := &ua.ReadRequest{
+		MaxAge:             2000,
+		TimestampsToReturn: ua.TimestampsToReturnBoth,
+		NodesToRead:        o.reqIDs,
+	}
+
+	var count uint64
+
+	for {
+		count++
+
+		// Try to update the values for all registered nodes
+		o.Log.Tracef("Sending OPC UA read request for %d %s nodes (attempt %d)...",
+			len(o.reqIDs), nodeTypeLabel(o.Workarounds.UseUnregisteredReads), count)
+		requestStart := time.Now()
+		resp, err := o.Client.Read(o.ctx, req)
+		plcDuration := time.Since(requestStart)
+		if err == nil {
+			// Success, update the node values and exit
+			o.ReadSuccess.Incr(1)
+			o.forceReconnect = false
+			o.Log.Tracef("OPC UA read response received in %s, updating %d node values...", plcDuration, len(resp.Results))
+			updateStart := time.Now()
+			for i, d := range resp.Results {
+				o.UpdateNodeValue(i, d)
+			}
+			o.Log.Tracef("Node value update took %s", time.Since(updateStart))
+			return nil
+		}
+
+		o.ReadError.Incr(1)
+		o.Log.Tracef("OPC UA read request failed after %s: %v", plcDuration, err)
+
+		isSessionError := errors.Is(err, ua.StatusBadSessionIDInvalid) ||
+			errors.Is(err, ua.StatusBadSessionNotActivated) ||
+			errors.Is(err, ua.StatusBadSecureChannelIDInvalid)
+
+		// Flag session error for next cycle if encountered
+		if isSessionError {
+			o.forceReconnect = true
+		}
+
+		switch {
+		case count > o.ReadRetries:
+			// We exceeded the number of retries and should exit
+			return fmt.Errorf("reading %s nodes failed after %d attempts: %w",
+				nodeTypeLabel(o.Workarounds.UseUnregisteredReads), count, err)
+		case isSessionError:
+			// Retry after the defined period as session and channels should be refreshed
+			o.Log.Debugf("reading failed with %v, retry %d / %d...", err, count, o.ReadRetries)
+			time.Sleep(o.ReadRetryTimeout)
+		default:
+			// Non-retryable error, there is nothing we can do
+			return fmt.Errorf("reading %s nodes failed: %w",
+				nodeTypeLabel(o.Workarounds.UseUnregisteredReads), err)
+		}
+	}
+}
+
+// Helper function to provide more accurate error messages
+func nodeTypeLabel(useUnregistered bool) string {
+	if useUnregistered {
+		return "unregistered"
+	}
+	return "registered"
+}

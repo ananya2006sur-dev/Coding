@@ -1,0 +1,273 @@
+package statsd
+
+// this is adapted from datadog's apache licensed version at
+// https://github.com/DataDog/datadog-agent/blob/fcfc74f106ab1bd6991dfc6a7061c558d934158a/pkg/dogstatsd/parser.go#L173
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
+
+const (
+	priorityNormal = "normal"
+	priorityLow    = "low"
+
+	eventInfo    = "info"
+	eventWarning = "warning"
+	eventError   = "error"
+	eventSuccess = "success"
+)
+
+var uncommenter = strings.NewReplacer("\\n", "\n")
+
+func (s *Statsd) parseEventMessage(now time.Time, message, defaultHostname string) error {
+	// _e{title.length,text.length}:title|text
+	//  [
+	//   |d:date_happened
+	//   |p:priority
+	//   |h:hostname
+	//   |t:alert_type
+	//   |s:source_type_name
+	//   |#tag1,tag2
+	//  ]
+	//
+	//
+	// tag is key:value
+	messageRaw := strings.SplitN(message, ":", 2)
+	if len(messageRaw) < 2 || len(messageRaw[0]) < 7 || len(messageRaw[1]) < 3 {
+		return errors.New("invalid message format")
+	}
+	header := messageRaw[0]
+	message = messageRaw[1]
+
+	rawLen := strings.SplitN(header[3:], ",", 2)
+	if len(rawLen) != 2 {
+		return errors.New("invalid message format")
+	}
+
+	titleLen, err := strconv.ParseInt(rawLen[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid message format, could not parse title.length: %q", rawLen[0])
+	}
+	if len(rawLen[1]) < 1 {
+		return fmt.Errorf("invalid message format, could not parse text.length: %q", rawLen[0])
+	}
+	textLen, err := strconv.ParseInt(rawLen[1][:len(rawLen[1])-1], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid message format, could not parse text.length: %q", rawLen[0])
+	}
+	if titleLen < 0 || textLen < 0 {
+		return errors.New("invalid message format, title.length and text.length must be positive integer")
+	}
+	if titleLen+textLen+1 > int64(len(message)) {
+		return errors.New("invalid message format, title.length and text.length exceed total message length")
+	}
+
+	rawTitle := message[:titleLen]
+	rawText := message[titleLen+1 : titleLen+1+textLen]
+	message = message[titleLen+1+textLen:]
+
+	if len(rawTitle) == 0 || len(rawText) == 0 {
+		return errors.New("invalid event message format: empty 'title' or 'text' field")
+	}
+
+	name := rawTitle
+	tags := make(map[string]string, strings.Count(message, ",")+2) // allocate for the approximate number of tags
+	fields := make(map[string]interface{}, 9)
+	fields["alert_type"] = eventInfo // default event type
+	fields["text"] = uncommenter.Replace(rawText)
+	if defaultHostname != "" {
+		tags["source"] = defaultHostname
+	}
+	fields["priority"] = priorityNormal
+	ts := now
+	if len(message) < 2 {
+		s.acc.AddFields(name, fields, tags, ts)
+		return nil
+	}
+
+	rawMetadataFields := strings.Split(message[1:], "|")
+	for i := range rawMetadataFields {
+		if len(rawMetadataFields[i]) < 2 {
+			return errors.New("too short metadata field")
+		}
+		switch rawMetadataFields[i][:2] {
+		case "d:":
+			ts, err := strconv.ParseInt(rawMetadataFields[i][2:], 10, 64)
+			if err != nil {
+				continue
+			}
+			fields["ts"] = ts
+		case "p:":
+			switch rawMetadataFields[i][2:] {
+			case priorityLow:
+				fields["priority"] = priorityLow
+			case priorityNormal: // we already used this as a default
+			default:
+				continue
+			}
+		case "h:":
+			tags["source"] = rawMetadataFields[i][2:]
+		case "t:":
+			switch rawMetadataFields[i][2:] {
+			case eventError, eventWarning, eventSuccess, eventInfo:
+				fields["alert_type"] = rawMetadataFields[i][2:] // already set for info
+			default:
+				continue
+			}
+		case "k:":
+			tags["aggregation_key"] = rawMetadataFields[i][2:]
+		case "s:":
+			fields["source_type_name"] = rawMetadataFields[i][2:]
+		default:
+			if rawMetadataFields[i][0] != '#' {
+				return fmt.Errorf("unknown metadata type: %q", rawMetadataFields[i])
+			}
+			parseDataDogTags(tags, rawMetadataFields[i][1:])
+		}
+	}
+	// Use source tag because host is reserved tag key in Telegraf.
+	// In datadog the host tag and `h:` are interchangeable, so we have to check for the host tag.
+	if host, ok := tags["host"]; ok {
+		delete(tags, "host")
+		tags["source"] = host
+	}
+	s.acc.AddFields(name, fields, tags, ts)
+	return nil
+}
+
+func parseDataDogTags(tags map[string]string, message string) {
+	if len(message) == 0 {
+		return
+	}
+
+	start, i := 0, 0
+	var k string
+	var inVal bool // check if we are parsing the value part of the tag
+	for i = range message {
+		if message[i] == ',' {
+			if k == "" {
+				k = message[start:i]
+				tags[k] = "true" // this is because influx doesn't support empty tags
+				start = i + 1
+				continue
+			}
+			v := message[start:i]
+			if v == "" {
+				v = "true"
+			}
+			tags[k] = v
+			start = i + 1
+			k, inVal = "", false // reset state vars
+		} else if message[i] == ':' && !inVal {
+			k = message[start:i]
+			start = i + 1
+			inVal = true
+		}
+	}
+	if k == "" && start < i+1 {
+		tags[message[start:i+1]] = "true"
+	}
+	// grab the last value
+	if k != "" {
+		if start < i+1 {
+			tags[k] = message[start : i+1]
+			return
+		}
+		tags[k] = "true"
+	}
+}
+
+// parseServiceCheckMessage parses a Datadog service check message in the format:
+// _sc|<name>|<status>|d:<timestamp>|h:<hostname>|#<tag_key_1>:<tag_value_1>|m:<message>
+//
+// - <name> - service check name (required)
+// - <status> - 0=OK, 1=Warning, 2=Critical, 3=Unknown (required)
+// - d:<timestamp> - optional Unix timestamp
+// - h:<hostname> - optional hostname override
+// - #<tags> - optional tags (same format as metrics)
+// - m:<message> - optional message
+func (s *Statsd) parseServiceCheckMessage(now time.Time, message, defaultHostname string) error {
+	// Split on | delimiter
+	parts := strings.Split(message, "|")
+	if len(parts) < 3 {
+		return fmt.Errorf("invalid service check format for %q; expected at least 3 parts (_sc|name|status)", message)
+	}
+
+	// Validate the prefix
+	if parts[0] != "_sc" {
+		return fmt.Errorf("invalid service check format for %q; must start with _sc", message)
+	}
+
+	// Extract the service check name
+	checkName := parts[1]
+	if checkName == "" {
+		return fmt.Errorf("invalid service check format for %q; empty check name", message)
+	}
+
+	// Parse the status
+	statuses := []string{"ok", "warning", "critical", "unknown"}
+
+	idx, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid service check format: could not parse status %q", parts[2])
+	}
+	if idx < 0 || idx >= int64(len(statuses)) {
+		return fmt.Errorf("invalid service check format: status %d out of range (0-%d)", idx, len(statuses)-1)
+	}
+	statusText := statuses[idx]
+
+	tags := map[string]string{
+		"check_name": checkName,
+	}
+	if defaultHostname != "" {
+		tags["source"] = defaultHostname
+	}
+
+	fields := map[string]interface{}{
+		"status":      idx,
+		"status_text": statusText,
+	}
+
+	ts := now
+
+	// Process optional metadata fields
+	for i := 3; i < len(parts); i++ {
+		part := parts[i]
+		if len(part) < 2 {
+			continue
+		}
+
+		switch {
+		case strings.HasPrefix(part, "d:"):
+			// Timestamp
+			timestamp, err := strconv.ParseInt(part[2:], 10, 64)
+			if err != nil {
+				continue
+			}
+			ts = time.Unix(timestamp, 0)
+		case strings.HasPrefix(part, "h:"):
+			// Hostname
+			tags["source"] = part[2:]
+		case strings.HasPrefix(part, "m:"):
+			// Message
+			fields["message"] = uncommenter.Replace(part[2:])
+		case strings.HasPrefix(part, "#"):
+			// Tags
+			parseDataDogTags(tags, part[1:])
+		}
+	}
+
+	// Use source tag because host is reserved tag key in Telegraf.
+	// In datadog the host tag and `h:` are interchangeable.
+	if host, ok := tags["host"]; ok {
+		delete(tags, "host")
+		tags["source"] = host
+	}
+
+	s.acc.AddFields("statsd_service_check", fields, tags, ts)
+	return nil
+}

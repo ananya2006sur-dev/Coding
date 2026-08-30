@@ -1,0 +1,84 @@
+//go:generate ../../../tools/readme_config_includer/generator
+package template
+
+import (
+	_ "embed"
+	"fmt"
+	"strings"
+	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
+
+	"github.com/influxdata/telegraf"
+	"github.com/influxdata/telegraf/plugins/processors"
+)
+
+//go:embed sample.conf
+var sampleConfig string
+
+type Template struct {
+	Tag      string          `toml:"tag"`
+	Template string          `toml:"template"`
+	Log      telegraf.Logger `toml:"-"`
+
+	tmplTag   *template.Template
+	tmplValue *template.Template
+}
+
+func (*Template) SampleConfig() string {
+	return sampleConfig
+}
+
+func (r *Template) Init() error {
+	var err error
+
+	r.tmplTag, err = template.New("tag template").Funcs(sprig.TxtFuncMap()).Parse(r.Tag)
+	if err != nil {
+		return fmt.Errorf("creating tag name template failed: %w", err)
+	}
+
+	r.tmplValue, err = template.New("value template").Funcs(sprig.TxtFuncMap()).Parse(r.Template)
+	if err != nil {
+		return fmt.Errorf("creating value template failed: %w", err)
+	}
+	return nil
+}
+
+func (r *Template) Apply(in ...telegraf.Metric) []telegraf.Metric {
+	// for each metric in "in" array
+	for _, raw := range in {
+		m := raw
+		if wm, ok := raw.(telegraf.UnwrappableMetric); ok {
+			m = wm.Unwrap()
+		}
+		tm, ok := m.(telegraf.TemplateMetric)
+		if !ok {
+			r.Log.Errorf("metric of type %T is not a template metric", raw)
+			continue
+		}
+
+		var b strings.Builder
+		if err := r.tmplTag.Execute(&b, &tm); err != nil {
+			r.Log.Errorf("failed to execute tag name template: %v", err)
+			continue
+		}
+		tag := b.String()
+
+		b.Reset()
+		if err := r.tmplValue.Execute(&b, &tm); err != nil {
+			r.Log.Errorf("failed to execute value template: %v", err)
+			continue
+		}
+		value := b.String()
+
+		raw.AddTag(tag, value)
+	}
+
+	return in
+}
+
+func init() {
+	processors.Add("template", func() telegraf.Processor {
+		return &Template{}
+	})
+}
